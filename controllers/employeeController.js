@@ -77,8 +77,8 @@ exports.adminLogin = async (req, res) => {
 
   const token = jwt.sign(
     { id: employee.id, role: employee.role },
-    jwtConfig.secret,
-    { expiresIn: jwtConfig.expiresIn }
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE }
   );
   successResponse(res, 'Login successful', { token });
 };

@@ -20,19 +20,19 @@ router.get(
 router.get(
   '/all-leaves',
   authMiddleware,
-  roleMiddleware('ADMIN'),
+  roleMiddleware('ADMIN', 'HR'),
   asyncHandler(getAllLeaves)
 );
 router.get(
   '/:leaveId',
   authMiddleware,
-  roleMiddleware('ADMIN'),
+  roleMiddleware('ADMIN', 'HR'),
   asyncHandler(getSingleLeave)
 );
 router.patch(
   '/:leaveId/status',
   authMiddleware,
-  roleMiddleware('ADMIN'),
+  roleMiddleware('ADMIN', 'HR'),
   asyncHandler(updateLeaveStatus)
 );
 router.patch(

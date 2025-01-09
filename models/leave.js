@@ -1,6 +1,12 @@
+'use strict';
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  const Leave = sequelize.define(
-    'Leave',
+  class Leave extends Model {
+    static associate(models) {
+    }
+  }
+
+  Leave.init(
     {
       employeeId: {
         type: DataTypes.INTEGER,
@@ -23,8 +29,8 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isDate: true,
           validDateRange() {
-            if (this.from_date >= this.to_date) {
-              throw new Error("'from_date' must be earlier than 'to_date'.");
+            if (this.fromDate >= this.toDate) {
+              throw new Error("'fromDate' must be earlier than 'toDate'.");
             }
           },
         },
@@ -37,17 +43,23 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       leaveType: {
-        type: DataTypes.ENUM('half-day', 'full-day', 'weekend', 'monthly'),
+        type: DataTypes.STRING,
         allowNull: false,
+        validate: {
+          isIn: [['half-day', 'full-day', 'weekend', 'monthly']],
+        },
       },
       description: {
         type: DataTypes.STRING,
         allowNull: true,
       },
       status: {
-        type: DataTypes.ENUM('pending', 'approved', 'disapproved'),
-        defaultValue: 'pending',
+        type: DataTypes.STRING,
         allowNull: false,
+        defaultValue: 'pending',
+        validate: {
+          isIn: [['pending', 'approved', 'disapproved']],
+        },
       },
       reason: {
         type: DataTypes.STRING,
@@ -60,16 +72,10 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      paranoid: true,
+      sequelize,
+      modelName: 'Leave',
     }
   );
-
-  Leave.associate = function (models) {
-    Leave.belongsTo(models.Employee, {
-      foreignKey: 'employeeId',
-      as: 'employee',
-    });
-  };
 
   return Leave;
 };

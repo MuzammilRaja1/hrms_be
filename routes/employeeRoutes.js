@@ -14,7 +14,7 @@ router.post(
   '/create-employee',
   employeeValidator,
   authMiddleware,
-  roleMiddleware('ADMIN'),
+  roleMiddleware('ADMIN', 'HR'),
   asyncHandler(createEmployee)
 );
 router.get(
