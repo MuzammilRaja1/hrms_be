@@ -3,7 +3,7 @@ const { Leave } = require('../models');
 const { errorResponse, successResponse } = require('../utils/responseHandler');
 
 // Create a leave request
-exports.createLeave =  async (req, res) => {
+exports.createLeave = async (req, res) => {
   const { fromDate, toDate, leaveTitle, leaveType, description } = req.body;
   const employeeId = req.employee.id;
   const leave = await Leave.create({
@@ -86,6 +86,40 @@ exports.deleteLeave = async (req, res) => {
   await leave.save();
   successResponse(res, leave, `Leave with ID ${leaveId} has been soft deleted`, 200);
 };
+
+
+// only Employee
+exports.updateLeaveRequest = async (req, res) => {
+  const { leaveTitle, leaveType, description, fromDate, toDate } = req.body;
+
+  const leaveId = req.params.leaveId;
+  const employeeId = req?.employee?.id;
+
+
+  const leave = await Leave.findOne({
+    where: { id: leaveId, employeeId: employeeId },
+  });
+
+  if (!leave) {
+    errorResponse(res, 'Leave request not found or not authorized', 404);
+  }
+
+  if (fromDate && toDate && new Date(fromDate) >= new Date(toDate)) {
+    errorResponse(res, "'fromDate' must be earlier than 'toDate'.", 400);
+  }
+
+  const updatedLeave = await leave.update({
+    leaveTitle: leaveTitle || leave.leaveTitle,
+    leaveType: leaveType || leave.leaveType,
+    description: description || leave.description,
+    fromDate: fromDate || leave.fromDate,
+    toDate: toDate || leave.toDate,
+  });
+
+  successResponse(res, updatedLeave, 'Leave request updated successfully', 200);
+};
+
+
 
 
 

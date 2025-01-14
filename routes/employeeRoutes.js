@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllEmployee, createEmployee, adminLogin, loginEmployee } = require('../controllers/employeeController');
+const { getAllEmployee, createEmployee, adminLogin, loginEmployee, updateEmployeeDetail } = require('../controllers/employeeController');
 const asyncHandler = require('../middlewares/catchAsyncError');
 const authMiddleware = require('../middlewares/authMiddleware');
 const roleMiddleware = require('../middlewares/roleMiddleware');
@@ -16,6 +16,11 @@ router.post(
   authMiddleware,
   roleMiddleware('ADMIN', 'HR'),
   asyncHandler(createEmployee)
+);
+router.put(
+  '/update-employee',
+  authMiddleware,
+  asyncHandler(updateEmployeeDetail)
 );
 router.get(
   '/get-employees',

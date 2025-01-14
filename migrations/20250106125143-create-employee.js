@@ -1,4 +1,5 @@
 'use strict';
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -28,18 +29,26 @@ module.exports = {
         type: Sequelize.STRING
       },
       isDeleted: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        defaultValue: 0
+      },
+      isActivated: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: 1
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')  // Updated here
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')  // Updated here
       }
     });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Employees');
   }
