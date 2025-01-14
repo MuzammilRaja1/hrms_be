@@ -21,7 +21,7 @@ exports.createLeave = async (req, res) => {
 // My Leaves
 exports.getSpecificEmployeeLeave = async (req, res) => {
   const leaves = await Leave.findAll({
-    where: { employeeId: req?.employee?.id },
+    where: { employeeId: req?.employee?.id, isDeleted: false },
   });
   successResponse(res, leaves, 'All leaves fetched successfully', 201);
 };
@@ -29,7 +29,9 @@ exports.getSpecificEmployeeLeave = async (req, res) => {
 
 // Only Admin
 exports.getAllLeaves = async (req, res) => {
-  const leaves = await Leave.findAll();
+  const leaves = await Leave.findAll({
+    where: { isDeleted: false }
+  });
   successResponse(res, leaves, 'All leaves fetched successfully');
 };
 
@@ -76,18 +78,6 @@ exports.updateLeaveStatus = async (req, res) => {
 };
 
 
-exports.deleteLeave = async (req, res) => {
-  const { leaveId } = req.params;
-  const leave = await Leave.findByPk(leaveId);
-  if (!leave) {
-    errorResponse(res, `Leave with ID ${leaveId} not found`, 404);
-  }
-  leave.isDeleted = true;
-  await leave.save();
-  successResponse(res, leave, `Leave with ID ${leaveId} has been soft deleted`, 200);
-};
-
-
 // only Employee
 exports.updateLeaveRequest = async (req, res) => {
   const { leaveTitle, leaveType, description, fromDate, toDate } = req.body;
@@ -119,7 +109,29 @@ exports.updateLeaveRequest = async (req, res) => {
   successResponse(res, updatedLeave, 'Leave request updated successfully', 200);
 };
 
+// only Employee
+exports.deleteLeave = async (req, res) => {
+  const leaveId = req.params.leaveId;
+  const employeeId = req?.employee?.id;
 
+  const leave = await Leave.findOne({
+    where: {
+      id: leaveId,
+      employeeId: employeeId,
+      isDeleted: false,
+    },
+  });
+
+
+  if (!leave) {
+    return errorResponse(res, 'Leave request not found or not authorized', 404);
+  }
+
+  leave.isDeleted = true;
+  await leave.save();
+
+  successResponse(res, null, 'Leave request deleted successfully', 200);
+};
 
 
 

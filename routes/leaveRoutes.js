@@ -17,6 +17,11 @@ router.put(
   authMiddleware,
   asyncHandler(updateLeaveRequest)
 );
+router.delete(
+  '/delete-leave/:leaveId',
+  authMiddleware,
+  asyncHandler(deleteLeave)
+);
 router.get(
   '/my-leaves',
   authMiddleware,
@@ -40,11 +45,7 @@ router.patch(
   roleMiddleware('ADMIN', 'HR'),
   asyncHandler(updateLeaveStatus)
 );
-router.patch(
-  'delete/:leaveId/',
-  authMiddleware,
-  asyncHandler(deleteLeave)
-);
+
 
 
 
