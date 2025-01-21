@@ -1,37 +1,56 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Employee extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      Employee.belongsTo(models.Designation, {
+        foreignKey: 'designation',
+        as: 'designationDetails',
+      });
+      Employee.belongsToMany(models.Project, {
+        through: 'EmployeeProjects',
+        foreignKey: 'employeeId',
+        as: 'projects',
+      });
     }
   }
-  Employee.init({
-    username: DataTypes.STRING,
-    firstName: DataTypes.STRING,
-    lastName: DataTypes.STRING,
-    email: DataTypes.STRING,
-    role: DataTypes.STRING,
-    password: DataTypes.STRING,
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
+  Employee.init(
+    {
+      firstName: DataTypes.STRING,
+      lastName: DataTypes.STRING,
+      email: {
+        type: DataTypes.STRING,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
+      },
+      phoneNumber: DataTypes.STRING,
+      role: DataTypes.STRING,
+      designation: {
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'Designations',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
+      password: DataTypes.STRING,
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      isActivated: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
-    isActivated: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-  }, {
-    sequelize,
-    modelName: 'Employee',
-    tableName: 'Employees',
-  });
+    {
+      sequelize,
+      modelName: 'Employee',
+      tableName: 'Employees',
+    }
+  );
   return Employee;
 };

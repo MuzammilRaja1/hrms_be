@@ -1,4 +1,4 @@
-const { Employee } = require('../models');
+const { Employee, Designation, Project } = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { errorResponse, successResponse } = require('../utils/responseHandler');
@@ -9,28 +9,41 @@ const { Sequelize } = require('sequelize');
 
 // only admin
 exports.getAllEmployee = async (req, res) => {
-  try {
-    const users = await Employee.findAll();
-    res.status(200).json({ success: true, data: users });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+
+  const employees = await Employee.findAll({
+    include: [
+      {
+        model: Designation,
+        as: 'designationDetails',
+      },
+    ],
+  });
+
+  successResponse(res, employees, 'Employee fetched successfully', 200);
+
 };
 
 // only admin
 exports.createEmployee = async (req, res) => {
-  const { username, email, role, password, confirmPassword, firstName, lastName } = req.body;
+  const { email, phoneNumber, role, designation, firstName, lastName } = req.body;
+
+  const existingEmployee = await Employee.findOne({ where: { email } });
+  if (existingEmployee) {
+    return res.status(400).json({ error: 'Email already exists' });
+  }
+
+
   const employee = await Employee.create({
-    username,
     email,
+    phoneNumber,
     role,
-    password,
-    confirmPassword,
+    designation,
+    password: "Test1234",
     firstName,
     lastName,
     isActivated: true,
-
   });
+
   successResponse(res, employee, 'Employee created successfully', 201);
 
 };
@@ -136,3 +149,26 @@ exports.updateEmployeeDetail = async (req, res) => {
 
   successResponse(res, updatedEmployee, 'Employee details updated successfully', 200);
 };
+
+
+exports.getEmployeeProjects = async (req, res) => {
+  const employeeId = req.employee.id;
+
+  const employee = await Employee.findByPk(employeeId, {
+    include: [
+      {
+        model: Project,
+        as: 'projects',
+        attributes: ['id', 'name', 'description', 'isActivated'],
+      },
+    ],
+  });
+
+  if (!employee) {
+    errorResponse(res, 'Employee not found', 404);
+  }
+
+  successResponse(res, employee.projects, 'Projects fetched successfully', 200);
+
+};
+

@@ -1,25 +1,25 @@
 'use strict';
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Employees', {
       id: {
-        allowNull: false,
+        type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
       },
-
       firstName: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       lastName: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       email: {
         type: Sequelize.STRING,
-        unique: true
+        allowNull: false,
+        unique: true,
       },
       phoneNumber: {
         type: Sequelize.STRING
@@ -29,37 +29,33 @@ module.exports = {
       },
       designation: {
         type: Sequelize.INTEGER,
-        references: {
-          model: 'Designations',
-          key: 'id',
-        },
-        onDelete: 'SET NULL',
+        allowNull: true,
       },
       password: {
         type: Sequelize.STRING
-      },
-      isDeleted: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: 0
       },
       isActivated: {
         type: Sequelize.BOOLEAN,
         defaultValue: 1
       },
+      isDeleted: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: 0
+      },
       createdAt: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-      }
+      },
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('Employees');
-  }
+  },
 };

@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const employeeRoutes = require('./routes/employeeRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
+const designationRoutes = require('./routes/designationRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -16,6 +18,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api/employee', employeeRoutes);
 app.use('/api/leave', leaveRoutes);
+app.use('/api', designationRoutes);
+app.use('/api', projectRoutes);
 
 
 app.use(errorHandler);
