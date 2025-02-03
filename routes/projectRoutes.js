@@ -13,24 +13,28 @@ router.post(
   roleMiddleware('ADMIN', 'HR'),
   asyncHandler(createProject)
 );
+
 router.post(
   '/assign-project',
   authMiddleware,
   roleMiddleware('ADMIN', 'HR'),
   asyncHandler(assignProject)
 );
+
 router.get(
   '/projects',
   authMiddleware,
   roleMiddleware('ADMIN', 'HR'),
   asyncHandler(getAllProjects)
 );
+
 router.put(
   '/update/:projectId',
   authMiddleware,
   roleMiddleware('ADMIN', 'HR'),
   asyncHandler(updateProject)
 );
+
 router.put(
   '/update-status/:projectId',
   authMiddleware,

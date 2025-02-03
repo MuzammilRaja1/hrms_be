@@ -1,5 +1,6 @@
 // controllers/leaveController.js
-const { Leave } = require('../models');
+const { Op } = require('sequelize');
+const { Leave, Employee } = require('../models');
 const { errorResponse, successResponse } = require('../utils/responseHandler');
 
 // Create a leave request
@@ -20,19 +21,156 @@ exports.createLeave = async (req, res) => {
 
 // My Leaves
 exports.getSpecificEmployeeLeave = async (req, res) => {
-  const leaves = await Leave.findAll({
-    where: { employeeId: req?.employee?.id, isDeleted: false },
+  const { status, fromDate, toDate, page = 1, limit = 10 } = req.query;
+  const employeeId = req?.employee?.id;
+
+  const filters = {
+    employeeId,
+    isDeleted: false,
+  };
+
+  if (status) {
+    filters.status = status;
+  }
+
+  if (fromDate || toDate) {
+    filters.fromDate = {};
+
+    if (fromDate) {
+      filters.fromDate[Op.gte] = new Date(fromDate);
+    }
+    if (toDate) {
+      filters.fromDate[Op.lte] = new Date(toDate);
+    }
+  }
+
+  const offset = (page - 1) * limit;
+
+  const { count, rows: leaves } = await Leave.findAndCountAll({
+    where: filters,
+    limit: parseInt(limit, 10),
+    offset: parseInt(offset, 10),
   });
-  successResponse(res, leaves, 'All leaves fetched successfully', 201);
+
+  successResponse(res, {
+    leaves,
+    totalRecords: count,
+    currentPage: parseInt(page, 10),
+    totalPages: Math.ceil(count / limit),
+  }, 'Leaves fetched successfully', 200);
+
 };
 
-
 // Only Admin
+// exports.getAllLeaves = async (req, res) => {
+//   const { status, fromDate, toDate, page = 1, limit = 10, employeeName } = req.query;
+
+//   const filters = {
+//     isDeleted: false,
+//   };
+
+//   if (status) {
+//     filters.status = status;
+//   }
+
+//   if (fromDate || toDate) {
+//     filters.fromDate = {};
+
+//     if (fromDate) {
+//       filters.fromDate[Op.gte] = new Date(fromDate);
+//     }
+//     if (toDate) {
+//       filters.fromDate[Op.lte] = new Date(toDate);
+//     }
+//   }
+
+//   const offset = (page - 1) * limit;
+
+//   const employeeWhere = employeeName
+//     ? {
+//       [Op.or]: [
+//         { firstName: { [Op.like]: `%${employeeName}%` } },
+//         { lastName: { [Op.like]: `%${employeeName}%` } },
+//       ],
+//     }
+//     : {};
+
+//   const { count, rows: leaves } = await Leave.findAndCountAll({
+//     where: filters,
+//     include: [
+//       {
+//         model: Employee,
+//         as: 'employeeDetails', // Match this alias with the one defined in your association
+//         attributes: ['firstName', 'lastName'],
+//         where: employeeName
+//           ? {
+//             [Op.or]: [
+//               { firstName: { [Op.like]: `%${employeeName}%` } },
+//               { lastName: { [Op.like]: `%${employeeName}%` },
+//                 ],
+//           }
+//           : undefined,
+//       },
+//     ],
+//     limit: parseInt(limit, 10),
+//     offset: parseInt(offset, 10),
+//   });
+
+//   successResponse(
+//     res,
+//     {
+//       leaves,
+//       totalRecords: count,
+//       currentPage: parseInt(page, 10),
+//       totalPages: Math.ceil(count / limit),
+//     },
+//     'All leaves fetched successfully',
+//     200
+//   );
+
+// };
+
 exports.getAllLeaves = async (req, res) => {
-  const leaves = await Leave.findAll({
-    where: { isDeleted: false }
-  });
-  successResponse(res, leaves, 'All leaves fetched successfully');
+  const { page = 1, limit = 10, employeeName, status } = req.query;
+
+  const offset = (page - 1) * limit;
+
+
+  console.log(employeeName, status, "employeeName, status ")
+
+  const whereClause = { isDeleted: false };
+
+  // Add filters if provided
+  if (status) {
+    whereClause.status = status;
+  }
+
+  try {
+    const { rows: leaves, count: totalLeaves } = await Leave.findAndCountAll({
+      where: whereClause,
+      include: [
+        {
+          model: Employee,
+          as: 'employeeDetails',
+          attributes: ['firstName', 'lastName'],
+          where: employeeName
+            ? {
+              [Op.or]: [
+                { firstName: { [Op.like]: `%${employeeName}%` } },
+                { lastName: { [Op.like]: `%${employeeName}%` } }
+              ],
+            }
+            : undefined,
+        },
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+    });
+
+    successResponse(res, { leaves, totalLeaves }, 'Leaves fetched successfully');
+  } catch (error) {
+    errorResponse(res, error.message || 'Failed to fetch leaves');
+  }
 };
 
 exports.getSingleLeave = async (req, res) => {
@@ -76,7 +214,6 @@ exports.updateLeaveStatus = async (req, res) => {
   );
 
 };
-
 
 // only Employee
 exports.updateLeaveRequest = async (req, res) => {
@@ -132,6 +269,8 @@ exports.deleteLeave = async (req, res) => {
 
   successResponse(res, null, 'Leave request deleted successfully', 200);
 };
+
+
 
 
 
