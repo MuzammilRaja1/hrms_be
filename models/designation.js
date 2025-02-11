@@ -1,34 +1,50 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize) => {
   class Designation extends Model {
     static associate(models) {
       Designation.hasMany(models.Employee, {
-        foreignKey: 'designation',
+        foreignKey: 'designationId',
         as: 'employees',
       });
-
     }
   }
 
-  Designation.init({
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
+  Designation.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
     },
-    isDeleted: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-  }, {
-    sequelize,
-    modelName: 'Designation',
-    tableName: 'Designations',
-  });
+    {
+      sequelize,
+      modelName: 'Designation',
+      tableName: 'Designations',
+      timestamps: true,
+    }
+  );
 
   return Designation;
 };

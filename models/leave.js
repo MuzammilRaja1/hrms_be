@@ -1,17 +1,25 @@
 'use strict';
 const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class Leave extends Model {
     static associate(models) {
       Leave.belongsTo(models.Employee, {
         foreignKey: 'employeeId',
         as: 'employeeDetails',
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       });
     }
   }
 
   Leave.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
       employeeId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -19,16 +27,18 @@ module.exports = (sequelize, DataTypes) => {
           model: 'Employee',
           key: 'id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       fromDate: {
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         allowNull: false,
         validate: {
           isDate: true,
         },
       },
       toDate: {
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         allowNull: false,
         validate: {
           isDate: true,
@@ -40,33 +50,27 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       leaveTitle: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(50),
         allowNull: false,
         validate: {
           len: [3, 50],
         },
       },
       leaveType: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('half-day', 'full-day', 'weekend', 'monthly'),
         allowNull: false,
-        validate: {
-          isIn: [['half-day', 'full-day', 'weekend', 'monthly']],
-        },
       },
       description: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
       },
       status: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('pending', 'approved', 'disapproved'),
         allowNull: false,
         defaultValue: 'pending',
-        validate: {
-          isIn: [['pending', 'approved', 'disapproved']],
-        },
       },
       reason: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
       },
       isDeleted: {
@@ -78,6 +82,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'Leave',
+      timestamps: true,
     }
   );
 

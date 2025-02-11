@@ -25,7 +25,7 @@ exports.getAllEmployee = async (req, res) => {
 
 // only admin
 exports.createEmployee = async (req, res) => {
-  const { email, phoneNumber, role, designation, firstName, lastName } = req.body;
+  const { email, phoneNumber, role, designationId, firstName, lastName } = req.body;
 
   const existingEmployee = await Employee.findOne({ where: { email } });
   if (existingEmployee) {
@@ -37,12 +37,13 @@ exports.createEmployee = async (req, res) => {
     email,
     phoneNumber,
     role,
-    designation,
+    designationId,
     password: "Test1234",
     firstName,
     lastName,
     isActivated: true,
   });
+  console.log(employee, "===employee")
 
   successResponse(res, employee, 'Employee created successfully', 201);
 

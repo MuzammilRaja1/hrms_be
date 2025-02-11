@@ -167,7 +167,8 @@ exports.getAllLeaves = async (req, res) => {
       offset: parseInt(offset),
     });
 
-    successResponse(res, { leaves, totalLeaves }, 'Leaves fetched successfully');
+
+    successResponse(res, { leaves, totalLeaves }, 'leaves fetched successfully');
   } catch (error) {
     errorResponse(res, error.message || 'Failed to fetch leaves');
   }

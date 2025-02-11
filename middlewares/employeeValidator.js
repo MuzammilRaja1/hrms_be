@@ -1,7 +1,7 @@
 module.exports = (req, res, next) => {
-  const { email, role, designation, firstName, lastName } = req.body;
+  const { email, role, designationId, firstName, lastName } = req.body;
 
-  if (!email || !role || !firstName, !designation) {
+  if (!email || !role || !firstName, !designationId) {
     return res.status(400).json({ success: false, message: 'All fields are required' });
   }
 
