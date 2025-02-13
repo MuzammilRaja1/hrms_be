@@ -94,7 +94,7 @@ module.exports = {
       role: {
         type: Sequelize.STRING
       },
-      designationId: { // Change here
+      designationId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Designations',
