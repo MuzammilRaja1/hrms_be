@@ -10,13 +10,13 @@ const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
-
 app.use(cors({
-  origin: process.env.ORIGIN_URL,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
+app.options('*', cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
