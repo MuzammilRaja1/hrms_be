@@ -11,7 +11,7 @@ const errorHandler = require('./middlewares/errorHandler');
 const app = express();
 
 const corsOptions = {
-  origin: 'https://hrm-fe.dboss.pk',
+  origin: ['https://hrm-fe.dboss.pk', 'http://localhost:5173'], 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
