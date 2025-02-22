@@ -25,7 +25,7 @@ exports.getAllEmployee = async (req, res) => {
 
 // only admin
 exports.createEmployee = async (req, res) => {
-  const { email, phoneNumber, role, designationId, firstName, lastName } = req.body;
+  const { email, phoneNumber, role, designationId, firstName, lastName, joiningDate } = req.body;
 
   const existingEmployee = await Employee.findOne({ where: { email } });
   if (existingEmployee) {
@@ -39,6 +39,7 @@ exports.createEmployee = async (req, res) => {
     role,
     designationId,
     password: "Test1234",
+    joiningDate,
     firstName,
     lastName,
     isActivated: true,
@@ -48,6 +49,35 @@ exports.createEmployee = async (req, res) => {
   successResponse(res, employee, 'Employee created successfully', 201);
 
 };
+
+// only admin
+exports.updateEmployeeDetailAdmin = async (req, res) => {
+  const { email, username, firstName, lastName } = req.body;
+  const adminId = req?.admin?.id;
+  const targetEmployeeId = req.params.id;
+
+  if (!adminId || !targetEmployeeId) {
+    return errorResponse(res, 'Unauthorized access', 403);
+  }
+
+  const employee = await Employee.findOne({
+    where: { id: targetEmployeeId}
+  });
+
+  if (!employee) {
+    return errorResponse(res, 'Employee not found or access denied', 404);
+  }
+
+  const updatedEmployee = await employee.update({
+    email: email || employee.email,
+    username: username || employee.username,
+    firstName: firstName || employee.firstName,
+    lastName: lastName || employee.lastName
+  });
+
+  return successResponse(res, updatedEmployee, 'Employee details updated successfully', 200);
+};
+
 
 exports.createDefaultAdmin = async () => {
   const existingAdmin = await Employee.findOne({ where: { email: 'admin@example.com' } });
@@ -109,7 +139,7 @@ exports.loginEmployee = async (req, res) => {
   const employee = await Employee.findOne({ where: { email, role: { [Sequelize.Op.ne]: 'ADMIN' } } });
 
   if (!employee) {
-    return responseHandler.errorResponse(res, 'Invalid credentials', 401);
+    return responseHandler.errorResponse(res, 'Invalid credentials', 400);
   }
 
   if (employee.isActivated === false) {
@@ -117,7 +147,7 @@ exports.loginEmployee = async (req, res) => {
   }
 
   if (password !== employee.password) {
-    return responseHandler.errorResponse(res, 'Invalid credentials', 401);
+    return responseHandler.errorResponse(res, 'Invalid credentials', 400);
   }
 
   const token = jwt.sign({ id: employee.id, role: employee.role }, process.env.JWT_SECRET, {

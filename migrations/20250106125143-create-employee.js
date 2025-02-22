@@ -105,6 +105,15 @@ module.exports = {
       password: {
         type: Sequelize.STRING
       },
+      joiningDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      leaveBalance: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
       isDeleted: {
         type: Sequelize.BOOLEAN,
         defaultValue: 0

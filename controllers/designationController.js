@@ -7,25 +7,25 @@ exports.createDesignation = async (req, res) => {
   const { name } = req.body;
 
   if (!name) {
-    errorResponse(res, 'Designation name is required.', 400);
+    return errorResponse(res, 'Designation name is required.', 400);
   }
-
 
   const existingDesignation = await Designation.findOne({
     where: { name }
   });
 
   if (existingDesignation) {
-    return errorResponse(res, 'Designation already exists', 400);
+    if (existingDesignation.isDeleted) {
+      await existingDesignation.update({ isDeleted: false });
+      return successResponse(res, existingDesignation, 'Designation updated successfully.', 200);
+    }
+    return errorResponse(res, 'Designation already exists.', 400);
   }
 
-  const designation = await Designation.create({
-    name: name,
-    isDeleted: false,
-  });
-
-  successResponse(res, designation, 'Designation created successfully.', 201);
+  const designation = await Designation.create({ name, isDeleted: false });
+  return successResponse(res, designation, 'Designation created successfully.', 201);
 };
+
 
 exports.updateDesignation = async (req, res) => {
   const { id, name } = req.body;
