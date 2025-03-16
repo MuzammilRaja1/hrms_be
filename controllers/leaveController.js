@@ -3,10 +3,44 @@ const { Op } = require('sequelize');
 const { Leave, Employee } = require('../models');
 const { errorResponse, successResponse } = require('../utils/responseHandler');
 
-// Create a leave request
 exports.createLeave = async (req, res) => {
   const { fromDate, toDate, leaveTitle, leaveType, description } = req.body;
   const employeeId = req.employee.id;
+
+  const employee = await Employee.findByPk(employeeId);
+  if (!employee) {
+    return errorResponse(res, 'Employee not found', 404);
+  }
+
+  const from = new Date(fromDate);
+  const to = new Date(toDate);
+
+  // Ensure time is set to midnight UTC
+  from.setUTCHours(0, 0, 0, 0);
+  to.setUTCHours(0, 0, 0, 0);
+
+  // ✅ Check Condition: toDate should be same or greater than fromDate
+  console.log("check")
+  if (to.getTime() < from.getTime()) {
+    console.log("iamincondition ")
+    errorResponse(res, "'toDate' must be equal to or later than 'fromDate'.", 400);
+  }
+
+  // 🔹 Calculate leave days (Full-Day or Half-Day logic)
+  let leaveBalance = employee.leaveBalance * 100; // Convert to integer (e.g. 1.75 → 175)
+  console.log(leaveBalance, "leaveBalance")
+  let deduction = leaveType === 'full-day' ? 50 : 100;
+  console.log(deduction, "deductiondeduction")
+
+  leaveBalance -= deduction;
+
+  if (leaveBalance < 0) {
+    return errorResponse(res, 'Not enough leave balance', 400);
+  }
+
+  // Convert back to decimal
+  employee.leaveBalance = leaveBalance / 100; // Example: 125 → 1.25
+
   const leave = await Leave.create({
     employeeId,
     fromDate,
@@ -14,10 +48,20 @@ exports.createLeave = async (req, res) => {
     leaveTitle,
     leaveType,
     description,
+    status: 'pending',
   });
-  successResponse(res, leave, 'Leave request created successfully', 201);
 
+  await employee.save();
+
+  successResponse(res, leave, 'Leave request created successfully', 201);
 };
+
+
+
+
+
+
+
 
 // My Leaves
 exports.getSpecificEmployeeLeave = async (req, res) => {
@@ -190,31 +234,28 @@ exports.updateLeaveStatus = async (req, res) => {
   const { leaveId } = req.params;
   const { status, reason } = req.body;
 
-  if (!['approved', 'disapproved'].includes(status)) {
-    errorResponse(res, 'Invalid status provided', 400);
-  }
-  if (['approved', 'disapproved'].includes(status) && !reason) {
-    errorResponse(res, 'Reason is required for approved or disapproved status', 400);
-  }
-
   const leave = await Leave.findByPk(leaveId);
 
   if (!leave) {
-    errorResponse(res, `Leave with ID ${leaveId} not found`, 404);
+    return errorResponse(res, `Leave with ID ${leaveId} not found`, 404);
+  }
+
+  if (status === 'disapproved') {
+    const employee = await Employee.findByPk(leave.employeeId);
+    const leaveDays = (new Date(leave.toDate) - new Date(leave.fromDate)) / (1000 * 60 * 60 * 24) + 1;
+
+    // Refund leave balance
+    employee.leaveBalance += leaveDays;
+    await employee.save();
   }
 
   leave.status = status;
   leave.reason = reason || null;
   await leave.save();
 
-  successResponse(
-    res,
-    leave,
-    `Leave with ID ${leaveId} updated successfully to ${status}`,
-    200
-  );
-
+  successResponse(res, leave, `Leave updated successfully to ${status}`, 200);
 };
+
 
 // only Employee
 exports.updateLeaveRequest = async (req, res) => {

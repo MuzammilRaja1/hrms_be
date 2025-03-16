@@ -4,6 +4,14 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Project extends Model {
     static associate(models) {
+      // Project.belongsToMany(models.Employee, {
+      //   through: 'EmployeeProjects',
+      //   foreignKey: 'projectId',
+      //   otherKey: 'employeeId',
+      //   as: 'employees',
+      //   onUpdate: 'CASCADE',
+      //   onDelete: 'CASCADE',
+      // });
       Project.belongsToMany(models.Employee, {
         through: 'EmployeeProjects',
         foreignKey: 'projectId',
@@ -12,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       });
+
     }
   }
 
@@ -45,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'Project',
       tableName: 'Projects',
-      timestamps: true, 
+      timestamps: true,
     }
   );
 

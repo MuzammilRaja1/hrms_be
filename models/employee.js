@@ -9,11 +9,19 @@ module.exports = (sequelize) => {
         as: 'designationDetails',
       });
 
+      // Employee.belongsToMany(models.Project, {
+      //   through: 'EmployeeProjects',
+      //   foreignKey: 'employeeId',
+      //   as: 'projects',
+      // });
+
       Employee.belongsToMany(models.Project, {
         through: 'EmployeeProjects',
         foreignKey: 'employeeId',
-        as: 'projects',
+        as: 'projects',  // 👈 Alias is 'projects'
       });
+
+
 
       Employee.hasMany(models.Leave, {
         foreignKey: 'employeeId',

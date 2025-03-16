@@ -1,4 +1,4 @@
-const { Employee, Designation, Project } = require('../models');
+const { Employee, Designation, Project, Leave, EmployeeProject, sequelize } = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { errorResponse, successResponse } = require('../utils/responseHandler');
@@ -9,7 +9,6 @@ const { Sequelize } = require('sequelize');
 
 // only admin
 exports.getAllEmployee = async (req, res) => {
-
   const employees = await Employee.findAll({
     include: [
       {
@@ -61,7 +60,7 @@ exports.updateEmployeeDetailAdmin = async (req, res) => {
   }
 
   const employee = await Employee.findOne({
-    where: { id: targetEmployeeId}
+    where: { id: targetEmployeeId }
   });
 
   if (!employee) {
@@ -108,7 +107,7 @@ exports.adminLogin = async (req, res) => {
 
   const admin = await Employee.findOne({ where: { email, role: 'ADMIN' } });
   if (!admin) {
-    return responseHandler.errorResponse(res, 'Invalid credentials', 401);
+    return responseHandler.errorResponse(res, 'Invalid credentials', 400);
   }
 
   if (admin.isActivated === false) {
@@ -202,4 +201,79 @@ exports.getEmployeeProjects = async (req, res) => {
   successResponse(res, employee.projects, 'Projects fetched successfully', 200);
 
 };
+
+exports.getEmployeeData = async (req, res) => {
+  const employeeId = req?.employee?.id;
+
+  if (!employeeId) {
+    errorResponse(res, 'Unauthorized access', 403);
+  }
+
+  const employee = await Employee.findByPk(employeeId, {
+    include: [
+      {
+        model: Designation,
+        as: 'designationDetails',
+        attributes: ['id', 'name']
+      },
+      {
+        model: Project,
+        as: 'projects',
+        attributes: ['id', 'name', 'description']
+      }
+    ]
+  });
+
+  if (!employee) {
+    errorResponse(res, 'Employee not found', 404);
+  }
+
+  successResponse(res, employee, 'Employee data fetched successfully', 200);
+}
+
+exports.getEmployeeStatistics = async (req, res) => {
+    const employeeId = req?.employee?.id;
+
+    if (!employeeId) {
+       errorResponse(res, "Unauthorized access", 403);
+    }
+
+    const leaveSummaryData = await Leave.findAll({
+      where: { employeeId: employeeId },
+      attributes: [
+        "status",
+        [sequelize.fn("COUNT", sequelize.col("status")), "count"],
+      ],
+      group: ["status"],
+      raw: true,
+    });
+
+    let pending = 0,
+      approved = 0,
+      disapproved = 0;
+
+    if (Array.isArray(leaveSummaryData) && leaveSummaryData.length > 0) {
+      leaveSummaryData.forEach((item) => {
+        if (item.status === "pending") pending = item.count || 0;
+        if (item.status === "approved") approved = item.count || 0;
+        if (item.status === "disapproved") disapproved = item.count || 0;
+      });
+    }
+
+    const projectCount = await EmployeeProject.count({
+      where: { employeeId: employeeId },
+    });
+
+    const responseData = {
+      leaveSummary: { pending, approved, disapproved },
+      projectCount: projectCount,
+    };
+
+    successResponse(res, responseData, "Employee statistics fetched successfully", 200);
+
+};
+
+
+
+
 

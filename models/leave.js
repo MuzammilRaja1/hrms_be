@@ -40,14 +40,14 @@ module.exports = (sequelize, DataTypes) => {
       toDate: {
         type: DataTypes.DATEONLY,
         allowNull: false,
-        validate: {
-          isDate: true,
-          validDateRange() {
-            if (this.fromDate >= this.toDate) {
-              throw new Error("'fromDate' must be earlier than 'toDate'.");
-            }
-          },
-        },
+        // validate: {
+        //   isDate: true,
+        //   validDateRange() {
+        //     if (this.fromDate >= this.toDate) {
+        //       throw new Error("'fromDate' must be earlier than 'toDate'.");
+        //     }
+        //   },
+        // },
       },
       leaveTitle: {
         type: DataTypes.STRING(50),
