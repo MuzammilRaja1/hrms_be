@@ -15,22 +15,30 @@ exports.createLeave = async (req, res) => {
   const from = new Date(fromDate);
   const to = new Date(toDate);
 
-  // Ensure time is set to midnight UTC
   from.setUTCHours(0, 0, 0, 0);
   to.setUTCHours(0, 0, 0, 0);
 
-  // ✅ Check Condition: toDate should be same or greater than fromDate
   console.log("check")
   if (to.getTime() < from.getTime()) {
     console.log("iamincondition ")
     errorResponse(res, "'toDate' must be equal to or later than 'fromDate'.", 400);
   }
 
-  // 🔹 Calculate leave days (Full-Day or Half-Day logic)
-  let leaveBalance = employee.leaveBalance * 100; // Convert to integer (e.g. 1.75 → 175)
+  let leaveBalance = employee.leaveBalance * 100;
   console.log(leaveBalance, "leaveBalance")
-  let deduction = leaveType === 'full-day' ? 50 : 100;
-  console.log(deduction, "deductiondeduction")
+  // let deduction = leaveType === 'full-day' ? 50 : 100;
+  // console.log(deduction, "deductiondeduction")
+
+
+
+  console.log(`Before Deduction - Leave Balance: ${employee.leaveBalance}`);
+
+  let deduction = leaveType === 'full-day' ? 1 : 0.75; // Full-day → 1 | Half-day → 0.75
+  console.log(`Deduction Amount: ${deduction}`);
+
+  employee.leaveBalance = parseFloat((employee.leaveBalance - deduction).toFixed(2));
+
+  console.log(`After Deduction - Leave Balance: ${employee.leaveBalance}`);
 
   leaveBalance -= deduction;
 
@@ -39,7 +47,7 @@ exports.createLeave = async (req, res) => {
   }
 
   // Convert back to decimal
-  employee.leaveBalance = leaveBalance / 100; // Example: 125 → 1.25
+  employee.leaveBalance = leaveBalance / 100; 
 
   const leave = await Leave.create({
     employeeId,
